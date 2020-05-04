@@ -1,22 +1,24 @@
 ## adaptive-linechart
 
-This is small library to draw charts in browser. It automaticaly create legend and labels for axe-x and -y depend on 
-available place (with/height) and supplied data. Maximal 10 lines. Current version process only positive values.
+This is a small library to draw charts in the browser. It automatically creates a legend and labels
+thes axes x and y depending on available space (width/height) and supplied data. Maximal 10 lines.
+The current version processes only positive values.
 
-You can adjust layout of chart, thats's why the name is "adaptive ...". The chart uses external CSS styles .nowrap 
-.linechart, .chart-title, .chart-live-data, .chart-legend, .chart-legent-item, .chart-legent-color. The chart uses 
-global variable isMobil (Boolean). If true, show live data by "mouse-over". By click on item in legend called external
-function **processSelectLegendItem(chartId, amount-of-lines, parameter-id)**. 
+The name “adaptive” indicates that you can adjust the layout of the chart. The chart uses the 
+external CSS styles .nowrap .linechart, .chart-title, .chart-live-data, .chart-legend, 
+.chart-legent-item, .chart-legent-color. The chart uses the global variable isMobil (Boolean). If
+true, live data are shown by "mouse-over". By click on item in legend called external
+function **`processSelectLegendItem(chartId, amount-of-lines, parameter-id)`**. 
 
-Chart accept data as time-series in format (string) "Unix-Timestamp/Value;Unix-Timestamp/Value;..". Additional (chart-util) 
-supplied function to convert CSV (with header) to time-series.
+The chart accepts data as time-series in the format (string) "Unix-Timestamp/Value;Unix-Timestamp/Value;..".
+Additional (chart-util) supplied function to convert CSV (with header) to time-series.
 
-The library use own simple logger that write messate to console. If need you can rewrite this object and redirect messages
- to another target.
+The library uses its own simple logger that writes messages to the console. If needed, you can
+rewrite this object and redirect messages to another target.
 
 ## Example
 
-The example example create chart with 3 lines in parent element with ID 'charts':
+This example creates a chart with 3 lines in parent element with ID 'charts':
 ```js
 var arTimeSeries = [
     {
@@ -49,36 +51,43 @@ lchart.draw();
 
 ## Public methods
 
-+ **LineChart(container, chartId, witdh, title, clasName)** - create object of type LineChart and create HTML code for the chart.
-    - **container** - Reference to parent element for chart. If null use BODY as parent element.
-    - **chartId** - Integer. Identifier for chart. Optional. If not defined use random integer.
-    - **width** - Integer. Width in pixel. Optional. Default use available width in parent element.
-    - **title** - String. Title of chart. Optional. If null don't create title.
-    - **className** - String. Class for div of chart. Optional. Default "linechart"
+**`LineChart(container, chartId, width, title, className)`** - create an object of type LineChart 
+and create HTML code for the chart.
+- **container** - Reference to parent element for chart. If null: use BODY as parent element.
+- **chartId** - String. Identifier for chart. Optional. If not defined use random integer.
+- **width** - Integer. Width in pixel. Optional. Default use available width in parent element.
+- **title** - String. Title of chart. Optional. If null: don't create title.
+- **className** - String. Class for div of chart. Optional. Default "linechart".
 
-+ **addLine(lineData)** - add data for new line and automaticaly create new item in legend. Return true if no problem detected, else false.
-    - **lineData** - The object represent data for one line in chart.
-        - **obj_name** - String. Name of object related to the chart. Used in legend.
-        - **par_name** - String. Name of parameter that represent current line. Used in legend.
-        - **par_id** - Integer. Optional. Id of this line. May be used to request data from backend.
-        - **values** - String. Time-series in format "Unix-Timestamp/Value;Unix-Timestamp/Value;.."
+**`addLine(lineData)`** - add data for a new line and automatically create a new item in the legend. 
+Return true if no problem detected, otherwise false.
 
-+ **draw()** - draw graphic. Skeep lines if properties hidden=true or isEmpty=true.
+**`lineData`** - The object represents data for one line in the chart.
+- **obj_name** - String. Name of object related to the chart. Used in legend.
+- **par_name** - String. Name of the parameter that represents the current line. Used in legend.
+- **par_id** - Integer. Optional ID of this line. May be used to request data from backend.
+- **values** - String. Time-series in format "Unix-Timestamp/Value;Unix-Timestamp/Value;.."
 
-+ **clear()** - clear graphic. Legend stay visible.
+**`draw()`** - draw graphic. Skeep lines if properties hidden=true or isEmpty=true.
 
-+  **resize(difWidth, difHeight)** - set new size. E.g. if size of parent element is changed.
-    - **difWidth** - Signed integer. Difference in width.
-    - **difHeight** - Signet integer. Difference in height.
+**`clear()`** - clear graphic. Legend stays visible.
 
-+ **isEmpty ()** Return true if all lines are empty
+**`resize(difWidth, difHeight)`** - set a new size. E.g. if the size of parent element is changed.
+- **difWidth** - Signed integer. Difference in width.
+- **difHeight** - Signed integer. Difference in height.
+
+**`isEmpty()`** Return true if all lines are empty
 
 ## Utility
 
-+ **scvToTimeSeries(csv)** - Process CSV and return array of objects {name: "Name of serie", data: "Unix-Timestamp/Value;Unix-Timestam/Value"}. 
-  Assume first column contains data-time as string. CSV may contains many columns. Name of serie take from header. Values may be empty. 
-  This function need package Moment.js https://momentjs.com
+**`scvToTimeSeries(csv)`** - process CSV and return array of objects 
+
+`{name: "Name of serie", data: "Unix-Timestamp/Value;Unix-Timestam/Value"}`. 
+
+Assume the first column contains data-time as string. The CSV may contain many columns. Name of 
+serie taken from header. Values may be empty. This function needs the package [Moment.js](https://momentjs.com)
 
 ## License
 
 [MIT](https://opensource.org/licenses/MIT) © Andrej Koslov
+
