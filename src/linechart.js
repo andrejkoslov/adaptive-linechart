@@ -1,3 +1,4 @@
+// Version 1.1.0
 // The oject represent line-chart. Constructor create HTML code for the chart. The chart 
 // uses external CSS styles .nowrap .linechart, .chart-title, .chart-live-data, .chart-legend,
 // .chart-legent-item, .chart-legent-color. The chart uses global variable isMobil (Boolean). 
@@ -147,9 +148,9 @@ class LineChart {
         // Integer. End of time that show chart. Sec. Unix Time-stamp.
         this.maxTs = 0;
         // Minimal measuring value.
-        this.minVal = 999999999999999;
+        this.minVal = Number.MAX_SAFE_INTEGER;
         // Maximal measuring value.
-        this.maxVal = 0;
+        this.maxVal = Number.MIN_SAFE_INTEGER;
         // Difference between two labels on axe Y. Real value, not a pix!
         this.axeYLabelStep = null;
         // Default and minimal distance (pixel) between labels on axe-y.
@@ -165,7 +166,7 @@ class LineChart {
         // Indicate selected in calender end-date. This parmeter used in SingleChart.
         this.endDate = null;
         // Average step. Seconds. If is valid number used to calculate step by drawing the chart. 
-        // If NaN, not used.
+        // If NaN, not used. This variable may be set manual.
         this.avgStep = NaN;
         
     // End consctructor object LineChart.
@@ -259,7 +260,7 @@ class LineChart {
     // Create line from object that represent one line of backend's response. Only measuring
     // values >= 0 supported! If found one negative value return null and output error in logger.
     // If data-string is empty, create line with flag isEmpty=true. The function also update some
-    // variables of chart chart-minTs, maxTs, minVal, maxVal.
+    // variables of chart minTs, maxTs, minVal, maxVal.
     // Example data-string "161111145730/3.48;161111145843/;161111150013/"
     // Each element separated by ";" in each element time-stamp separated from value by "/".
     // Value may be empty! Always in last item the element without value. It indicate only
@@ -267,41 +268,64 @@ class LineChart {
     _createLine (lineData) {
         // Create object empty line.
         var line = new SingleLine(lineData);
+         
         // Flag. True if value of all items are NaN. In this case set min/max 0/1
         var isAllNaN = true;
+        
         // If data-string is empty, return line with flag isEmpty=true.
         if (lineData.values.length == 0)
             return line;
+        
         // Split in array and loop over all elements.
         var ar = lineData.values.split(";");
+
         // Variable used by efficiently loop over big array.
         var arLen = ar.length;
         for (var i = 0; i < arLen; ++i) {
+            
             var item = ar[i].split('/');
+            
             if (item[0] == "") {
                 logger.warn('LineChart._createLine(). Item ' + i + ' time-stamp is empty.');
                 continue;
             }
+
             if (isNaN(item[0])) {
                 logger.warn('LineChart._createLine(). Item ' + i + ' contains invalid time-stamp "' + item[0] + '".');
                 continue;
             }
+
             var elem = { ts: null, val: null };
             elem.ts = parseInt(item[0]);
             elem.val = parseFloat(item[1]);
-            if (elem.val < 0) {
-                logger.error('LineChart._createLine(). Negative values not supported! ts=' + elem.ts + ' val=' + elem.val);
-                return null;
-            }
+            
             line.real.push(elem);
-            // If value is valid number, update min/max set to false flag isAllNaN
+
+            // If value is valid number, update min/max and set false isAllNaN.
             if (!isNaN(elem.val)) {
-                if (elem.val < this.minVal)
-                    this.minVal = Math.floor(elem.val * 0.95);
-                if (elem.val > this.maxVal)
-                        this.maxVal = Math.ceil(elem.val * 1.05);
+                
+                // Update mininal value. Positive and negative values process differently.
+                if(elem.val < 0) {
+
+                    if(Math.floor(elem.val * 1.1) < this.minVal) {
+                        this.minVal = Math.floor(elem.val * 1.1);
+                    }
+                    
+                } else {
+                    
+                    if(Math.floor(elem.val * 0.9) < this.minVal)  {
+                        this.minVal = Math.floor(elem.val * 0.9);
+                    }
+                }
+
+                // Update maximal value.
+                if (Math.ceil(elem.val * 1.1) > this.maxVal) {
+                    this.maxVal = Math.ceil(elem.val * 1.1);
+                }
+
                 isAllNaN = false;
             }
+
             // Update min/max time-stamp
             if (elem.ts < this.minTs)
                 this.minTs = elem.ts;
@@ -318,7 +342,7 @@ class LineChart {
             this.minVal = 0;
             this.maxVal = 1;
         }
-        // Calculate padding. This area used for labels.
+        // Calculate padding. This area used for labels. Both are type of object TextMetrics.
         var minValText = this.context.measureText(this.minVal.toString());
         var maxValText = this.context.measureText(this.maxVal.toString());
         // Set place for label using biggest value.
@@ -645,19 +669,25 @@ class LineChart {
         }
         // Clean temporary array
         avgY = [];
-        // If array with average values not empty set reference to real-data instead.
-        if (lineData.length == 0) {
+
+        // If array with average values is empty set reference to real-data instead.
+        if (lineData.length == 0)
             lineData = line.real;
-        }
+
+        // Prepare position x/y for points/items in line.
         arLen = lineData.length;
         for (var i = 0; i < arLen; i++) {
+
+            // Create empty point/item in line.
             var item = { X: NaN, Y: NaN };
-            // Convert Time-stamp to coordinate X
+            
+            // Convert time-stamp to coordinate X
             item.X = this._convertTs2PosX(lineData[i].ts);
+
             // Convert value to coordinate Y
-            if (!isNaN(lineData[i].val)) {
+            if (!isNaN(lineData[i].val)) 
                 item.Y = this._convertVal2PosY(lineData[i].val);
-            }
+
             // By items with the same position X calculate average value.
             if (item.X == lastX) {
                 avgY.push(item.Y);
@@ -797,7 +827,7 @@ class LineChart {
         '#FF4500', // OrangeRed
         '#00FF00', // Lime
         '#8A2BE2'  // BlueViolet
-    ];
+    ]
         
     // Default color used in some elements
     colorDefault = '#657585';
@@ -833,3 +863,7 @@ class SingleLine {
         this.hidden = false; // Property uses to hide line in chart by click on legend item.
     }
 }
+
+// Version 
+LineChart.prototype.Version = "1.1.0";
+

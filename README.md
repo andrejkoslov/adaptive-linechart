@@ -1,14 +1,14 @@
-## adaptive-linechart
+## adaptive-linechart :chart_with_upwards_trend:
 
-This is a small library to draw charts in the browser. It automatically creates a legend and labels
-thes axes x and y depending on available space (width/height) and supplied data. Maximal 10 lines.
-The current version processes only positive values.
+This is a small library to draw charts in the browser. Why is it "adaptive"? Because it automaticaly
+adjust chart to available size depend on min/max values on and timespan. Additional you 
+can adjust the layout of the chart. The chart uses the external CSS styles .nowrap .linechart, 
+.chart-title, .chart-live-data, .chart-legend, .chart-legend-item, .chart-legend-color. 
 
-The name “adaptive” indicates that you can adjust the layout of the chart. The chart uses the 
-external CSS styles .nowrap .linechart, .chart-title, .chart-live-data, .chart-legend, 
-.chart-legent-item, .chart-legent-color. The chart uses the global variable isMobil (Boolean). If
-true, live data are shown by "mouse-over". By click on item in legend called external
-function **`processSelectLegendItem(chartId, amount-of-lines, parameter-id)`**. 
+Maximal 10 lines. Since version 1.1.0 allowed negative and positive values in randge from 
+-9007199254740991 till 9007199254740991. The chart uses the global variable isMobil (Boolean). If
+true, live data are shown by "mouse-over". By clicking on any item in the legend an external
+function will be executed **processSelectLegendItem(chartId, amount-of-lines, parameter-id)**
 
 The chart accepts data as time-series in the format (string) "Unix-Timestamp/Value;Unix-Timestamp/Value;..".
 Additional (chart-util) supplied function to convert CSV (with header) to time-series.
@@ -49,6 +49,8 @@ for(let i=0; i < arTimeSeries.length; i++) {
 lchart.draw();
 ```
 
+[Live example](http://www.softdorado.com/adaptive-linechart/)
+
 ## Public methods
 
 **`LineChart(container, chartId, width, title, className)`** - create an object of type LineChart 
@@ -68,7 +70,7 @@ Return true if no problem detected, otherwise false.
 - **par_id** - Integer. Optional ID of this line. May be used to request data from backend.
 - **values** - String. Time-series in format "Unix-Timestamp/Value;Unix-Timestamp/Value;.."
 
-**`draw()`** - draw graphic. Skeep lines if properties hidden=true or isEmpty=true.
+**`draw()`** - draw graphic. Skip lines if properties hidden=true or isEmpty=true.
 
 **`clear()`** - clear graphic. Legend stays visible.
 
@@ -82,10 +84,14 @@ Return true if no problem detected, otherwise false.
 
 **`scvToTimeSeries(csv)`** - process CSV and return array of objects 
 
-`{name: "Name of serie", data: "Unix-Timestamp/Value;Unix-Timestam/Value"}`. 
+`{name: "Name of serie", data: "Unix-Timestamp/Value;Unix-Timestamp/Value"}`. 
 
 Assume the first column contains data-time as string. The CSV may contain many columns. Name of 
 serie taken from header. Values may be empty. This function needs the package [Moment.js](https://momentjs.com)
+
+## Contact
+
+If you have any questions, please contact me `adaptive-linechart@my.mail.de`
 
 ## License
 
