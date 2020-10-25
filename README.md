@@ -7,8 +7,8 @@ can adjust the layout of the chart. The chart uses the external CSS styles .nowr
 
 Maximal 10 lines. Since version 1.1.0 allowed negative and positive values in randge from 
 -9007199254740991 till 9007199254740991. The chart uses the global variable isMobil (Boolean). If
-true, live data are shown by "mouse-over". By clicking on any item in the legend an external
-function will be executed **processSelectLegendItem(chartId, amount-of-lines, parameter-id)**
+false, live data are shown by "mouse-over". By click on item in the legend hide/show line on chart 
+and switch colored tag of item.
 
 The chart accepts data as time-series in the format (string) "Unix-Timestamp/Value;Unix-Timestamp/Value;..".
 Additional (chart-util) supplied function to convert CSV (with header) to time-series.

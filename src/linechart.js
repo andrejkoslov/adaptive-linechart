@@ -2,7 +2,7 @@
 // The oject represent line-chart. Constructor create HTML code for the chart. The chart 
 // uses external CSS styles .nowrap .linechart, .chart-title, .chart-live-data, .chart-legend,
 // .chart-legent-item, .chart-legent-color. The chart uses global variable isMobil (Boolean). 
-// If true show live data by mouse over. By click on item in legend called external function 
+// If false, show live data by mouse over. By click on item in legend called external function 
 // processSelectLegendItem(chartId, amount-of-lines, parId). Only positive values allowed.
 // Labels on axe-X and -Y will be created automaticaly. The chart can show maximal 10 lines
 // in different colors.
@@ -177,7 +177,7 @@ class LineChart {
     // line.obj_name:"Proxy Server"
     // line.par_name:"CpuTotal"
     // line.par_id:"2452"
-    // line.values: Example data-string "161111145730/3.48;161111145843/3.50;161111150013/""
+    // line.values: Example data-string "161111145730/3.48;161111145843/3.50;161111150013/"
     // @return Boolean. True if no problem detected. Else false.
     addLine (lineData) {
         if (lineData.values == null) {
@@ -200,26 +200,38 @@ class LineChart {
         line.objName = lineData.obj_name;
         line.parName = lineData.par_name;
         line.parId = lineData.par_id;
-        var color = this.colors[this.lines.length];
-        // Reference to legend-item as dom-element. Set function called by click on element
-        // to hide/show line on chart.
-        if (isMobil) {
-            line.legend = addNewElement(this.legendDiv, 'div', {
-                class: 'chart-legend-item nowrap',
-                id: 'chart_' + this.chartId + '_legend_' + lineData.par_id,
-                style: 'max-width:' + (this.chartDiv.clientWidth - 20) + 'px;',
-                onclick: 'processSelectLegendItem(' + this.chartId + ',' + this.lines.length + ',' + line.parId + ')',
-                innerHTML: '<span class="chart-legend-color" style="background-color:' + color + '; color:' + color + ';">--</span>' + line.objName + ' / ' + line.parName
-            });
-        } else {
-            line.legend = addNewElement(this.legendDiv, 'div', {
-                class: 'chart-legend-item nowrap',
-                id: 'chart_' + this.chartId + '_legend_' + lineData.par_id,
-                style: 'max-width:' + (this.chartDiv.clientWidth - 20) + 'px;',
-                onclick: 'processSelectLegendItem(' + this.chartId + ',' + this.lines.length + ',' + line.parId + ')',
-                innerHTML: '<span class="chart-legend-color" style="background-color:' + color + '; color:' + color + ';">--</span>' + line.objName + ' / ' + line.parName
-            });
-        }
+        line.color = this.colors[this.lines.length];
+        // Create legend-item as dom-element. 
+        line.legend = addNewElement(this.legendDiv, 'div', {
+            class: 'chart-legend-item nowrap',
+            id: `chart_${this.chartId}_legend_${lineData.par_id}`,
+            style: `cursor: pointer; max-width:${this.chartDiv.clientWidth - 20}px;`,
+            innerHTML: `<span class="chart-legend-color" style="background-color:${line.color}; color:${line.color};">--</span>${line.objName} / ${line.parName}`
+        });
+        // Set function called by click on element to hide/show line on chart. 
+        line.legend.addEventListener('click', function (event) {
+            
+            // First sub-element of class chart-legend-color is colored tag for this legend item. 
+            // This element used to swith color by click on legent item.
+            var legendColor = event.target.getElementsByClassName('chart-legend-color')[0];
+
+            // By click on colored tag this varibale is null. In this case only exit.
+            if(legendColor == null) return;
+            
+            if(line.hidden == false) {
+                line.hidden = true;
+                legendColor.style.backgroundColor = 'white';
+            } else {
+                line.hidden = false;
+                legendColor.style.backgroundColor = line.color;
+            }
+            
+            event.target.chart.draw();
+        });
+        
+        // Link to parent chart in the legend item. Need to process click on legend item.
+        line.legend.chart = this;
+
         // Put new line array of lines.
         this.lines.push(line);
         return true;
@@ -257,10 +269,13 @@ class LineChart {
         return true;
     }
 
-    // Create line from object that represent one line of backend's response. Only measuring
-    // values >= 0 supported! If found one negative value return null and output error in logger.
-    // If data-string is empty, create line with flag isEmpty=true. The function also update some
-    // variables of chart minTs, maxTs, minVal, maxVal.
+    _processSelectLegentItem = function() {
+        console.info("Prozess legent item");
+    }
+
+    // Create line from object that represent one line of backend's response. If found one negative
+    // value return null and output error in logger. If data-string is empty, create line with flag
+    // isEmpty=true. The function also update some variables of chart minTs, maxTs, minVal, maxVal.
     // Example data-string "161111145730/3.48;161111145843/;161111150013/"
     // Each element separated by ";" in each element time-stamp separated from value by "/".
     // Value may be empty! Always in last item the element without value. It indicate only
@@ -271,6 +286,10 @@ class LineChart {
          
         // Flag. True if value of all items are NaN. In this case set min/max 0/1
         var isAllNaN = true;
+
+        // If par_id is missing, set number of line in the chart as par_id
+        if(lineData.par_id == null)
+            lineData.par_id = this.lines.length;
         
         // If data-string is empty, return line with flag isEmpty=true.
         if (lineData.values.length == 0)
@@ -279,7 +298,7 @@ class LineChart {
         // Split in array and loop over all elements.
         var ar = lineData.values.split(";");
 
-        // Variable used by efficiently loop over big array.
+        // Variable used efficiently by loop over big array.
         var arLen = ar.length;
         for (var i = 0; i < arLen; ++i) {
             
@@ -336,12 +355,14 @@ class LineChart {
         // If line is empty skip next operations.
         if (line.real.length == 0)
             return line;
+        
         line.isEmpty = false;
         // Adjust min/max values if both 0 or all values NaN
         if ((this.maxVal == 0 && this.minVal == 0) || isAllNaN) {
             this.minVal = 0;
             this.maxVal = 1;
         }
+
         // Calculate padding. This area used for labels. Both are type of object TextMetrics.
         var minValText = this.context.measureText(this.minVal.toString());
         var maxValText = this.context.measureText(this.maxVal.toString());
@@ -351,6 +372,7 @@ class LineChart {
         } else {
             this.padding.left = Math.round(minValText.width) + 23;
         }
+
         return line;
     }    
 
@@ -861,8 +883,11 @@ class SingleLine {
                         // Fill with data later, because need update min/max parsmeter of chart.
         this.isEmpty = true; // Flag indicate that line contains no data.
         this.hidden = false; // Property uses to hide line in chart by click on legend item.
+        this.color = "black" // Default color for line
     }
 }
+
+var allCharts = [];
 
 // Version 
 LineChart.prototype.Version = "1.1.0";
