@@ -1,5 +1,7 @@
 ## adaptive-linechart :chart_with_upwards_trend:
 
+Version 1.2.0
+
 This is a small library to draw charts in the browser. Why is it "adaptive"? Because it automaticaly
 adjust chart to available size depend on min/max values on and timespan. Additional you 
 can adjust the layout of the chart. The chart uses the external CSS styles .nowrap .linechart, 

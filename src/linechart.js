@@ -557,23 +557,40 @@ class LineChart {
                 labelMinVal += this.axeYLabelStep;
             }
         }
+        // Calculate maximal hight of axe-y. This value used to prevent labels on axe-y
+        // below axe-x. This may happy some times if this.minVal is negative.
+        var axeYHight = this.canvas.height - this.padding.bottom;
+
         // Create array of labels. Each item in array contains {value:value, Y:position-Y}
         // It will be used to draw labels and help-lines. The loop limit to 33 labels to
         // prevent infinite loop.
         var axeY = [];
         i = 0;
         var labelPosY, labelValue;
+
         while (i < 33) {
+
             labelValue = labelMinVal + (this.axeYLabelStep * i);
-            // If step less as 1, format values of label to two decimal digits
+
+            // If step less as 1 or =2.5, format values of label to two decimal digits
             if (this.axeYLabelStep < 1 || this.axeYLabelStep == 2.5)
                 labelValue = labelValue.toFixed(2);
-                labelPosY = this._convertVal2PosY(labelValue);
-                if (labelPosY < 0)
-                    break;
+            
+            labelPosY = this._convertVal2PosY(labelValue);
+            
+            // End loop if reach uper border of axe-y.
+            if (labelPosY < 0)
+                break;
+            
+            // Some time if this.minVal is negative, label at the bottom placed below axe-x.
+            // To prevent it add label to array only if label's position is smaler as available 
+            // hight of chart.
+            if(labelPosY < axeYHight) {
                 var label = { value: labelValue, Y: labelPosY };
                 axeY.push(label);
-                i++;
+            }
+
+            i++;
         }
         // Begin drawing.
         this.context.lineWidth = 1;
@@ -890,5 +907,5 @@ class SingleLine {
 var allCharts = [];
 
 // Version 
-LineChart.prototype.Version = "1.1.0";
+LineChart.prototype.Version = "1.2.0";
 
